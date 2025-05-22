@@ -1,7 +1,6 @@
 using ArtTest.Models;
 using ArtTest.Utilities;
 using System;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -27,6 +26,8 @@ namespace ArtTest.Game
         private int highScore;
 
         private const string highScoreKey = "highscore";
+
+        private bool isGameOverCheckerInitialized = false;
 
         public event Action<int> OnScoreChanged;
         public event Action OnGameEnd;
@@ -74,39 +75,27 @@ namespace ArtTest.Game
             }
 
             blockSpawnManager.Initialize(gameSettings);
-            blockSpawnManager.OnBlockSpawned += HandleBlockSpawned;
+            blockSpawnManager.OnBlockSpawned -= HandleOnBlockSpawned;
+            blockSpawnManager.OnBlockSpawned += HandleOnBlockSpawned;
+
+            blockSpawnManager.OnSpawnFinished -= HandleOnSpawnFinished;
+            blockSpawnManager.OnSpawnFinished += HandleOnSpawnFinished;
         }
 
-        private void HandleBlockSpawned(Block block)
+        private void HandleOnSpawnFinished()
         {
-            block.GetComponent<Draggable>().OnDragEnd += HandleBlockDragEnd;
+            CheckForGameOver();
         }
 
-        private void HandleBlockDragEnd(Block block)
+        private void HandleOnBlockSpawned(Block block)
         {
-            var gridPosition = gridManager.GetClosestGridPosition(block.transform.position);
+            var draggable = block.GetComponent<Draggable>();
+            draggable.OnDragEnd += HandleOnDragEnd;
+        }
 
-            if (gridManager.CheckValidPlacement(block, gridPosition))
-            {
-                gridManager.PlaceBlock(block, gridPosition);
-                blockSpawnManager.ActiveBlocks.Remove(block);
-                block.GetComponent<Draggable>().OnDragEnd -= HandleBlockDragEnd;
-                block.GetComponent<Draggable>().enabled = false;
-
-                if (blockSpawnManager.ActiveBlocks.Count == 0)
-                {
-                    blockSpawnManager.SpawnBlocks();
-
-                    if (!blockSpawnManager.CanPlaceAnyBlock(gridManager, gameSettings))
-                    {
-                        TriggerGameEnd();
-                    }
-                }
-
-                return;
-            }
-
-            block.GetComponent<Draggable>().ResetPosition();
+        private void HandleOnDragEnd(Block block)
+        {
+            gridManager.TryClearLines();
         }
 
         private void ConnectGridManager(GridManager gridManager = null)
@@ -130,11 +119,28 @@ namespace ArtTest.Game
 
             this.gridManager.OnLinesCleared -= HandleLinesCleared;
             this.gridManager.OnLinesCleared += HandleLinesCleared;
+
+            this.gridManager.OnLinesCheckFinished -= HandleOnLinesCheckFinished;
+            this.gridManager.OnLinesCheckFinished += HandleOnLinesCheckFinished;
+        }
+
+        private void HandleOnLinesCheckFinished()
+        {
+            CheckForGameOver();
+        }
+
+        private void HandleLinesCleared(int linesCleared)
+        {
+            AddScore(linesCleared);
         }
 
         public void AddScore(int linesCleared)
         {
-            ;
+            if (linesCleared == 0)
+            {
+                return;
+            }
+
             var scoreData = gameSettings.ScorePerLineCleared;
             score += scoreData[Mathf.Clamp(linesCleared - 1, 0, scoreData.Length - 1)];
             if (score > highScore)
@@ -159,6 +165,70 @@ namespace ArtTest.Game
             }
         }
 
+        private void CheckForGameOver()
+        {
+            if (!isGameOverCheckerInitialized)
+            {
+                Debug.Log("Game over checker is not initialized. Initializing now...");
+                isGameOverCheckerInitialized = true;
+                return;
+            }
+
+            if (blockSpawnManager.ActiveBlocks.Count == 0)
+            {
+                Debug.Log("No active blocks to check. Skipping...");
+                return;
+            }
+
+            foreach(var block in blockSpawnManager.ActiveBlocks)
+            {
+                if (CanPlaceBlock(block))
+                {
+                    Debug.Log("Block can be placed. Game continues.");
+                    return;
+                }
+            }
+
+            Debug.Log("No blocks can be placed. Game over.");
+            TriggerGameEnd();
+        }
+
+        private bool CanPlaceBlock(Block block)
+        {
+            var draggable = block.GetComponent<Draggable>();
+
+            foreach (var cell in gridManager.Cells)
+            {
+                Debug.Log("Checking cell at " + cell.transform.position);
+                if (TrySimulatePlacement(block, cell.transform.position))
+                {
+                    draggable.ResetPosition();
+                    return true;
+                }
+            }
+
+            draggable.ResetPosition();
+            return false;
+        }
+
+        private bool TrySimulatePlacement(Block block, Vector3 simulatedPosition)
+        {
+            Vector3 offset = simulatedPosition - block.CellVisuals[0].transform.position;
+
+            foreach(var visual in block.CellVisuals)
+            {
+                Vector3 cellPosition = visual.transform.position + offset;
+                Debug.Log("Simulating placement at " + cellPosition);
+                Collider2D hit = Physics2D.OverlapPoint(cellPosition, LayerMask.GetMask("Grid"));
+                if (hit == null || !hit.TryGetComponent<Cell>(out var cell) || cell.OccupyingBlock != null)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public void TriggerGameEnd()
         {
             OnGameEnd?.Invoke();
@@ -172,11 +242,6 @@ namespace ArtTest.Game
                 Score = highScore
             };
             Utilities.Utilities.GetFileIO(highScoreKey).SaveToFile(highScoreKey, entry.ToJson());
-        }
-
-        private void HandleLinesCleared(int linesCleared)
-        {
-            AddScore(linesCleared);
         }
     }
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5289130669054836948}
   - component: {fileID: 3835364705883393885}
   - component: {fileID: 7633236417268102842}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GridCell
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 853060870582251699}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.1738455, y: 2.275074, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -100,4 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be25718e8d2315244926f9ab899caf67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  x: 0
+  y: 0
   IsOccupied: 0

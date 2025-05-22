@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,26 +12,26 @@ namespace ArtTest.Game
 
         [SerializeField]
         private GameObject cellVisualPrefab;
-        private List<GameObject> cellVisuals = new();
+        public List<GameObject> CellVisuals = new();
 
         public void Initialize(List<Vector2Int> shape, Color color)
         {
             CellsOccupied = shape;
             blockColor = color;
 
-            foreach(var visual in cellVisuals)
+            foreach(var visual in CellVisuals)
             {
                 Destroy(visual);
             }
 
-            cellVisuals.Clear();
+            CellVisuals.Clear();
 
             foreach (var cell in CellsOccupied)
             {
                 var cellVisual = Instantiate(cellVisualPrefab, transform).GetComponent<SpriteRenderer>();
                 cellVisual.color = blockColor;
                 cellVisual.transform.localPosition = new Vector3(cell.x, cell.y, 0);
-                cellVisuals.Add(cellVisual.gameObject);
+                CellVisuals.Add(cellVisual.gameObject);
             }
 
             CenterVisuals();
@@ -52,7 +51,7 @@ namespace ArtTest.Game
             }
             center /= CellsOccupied.Count;
 
-            foreach(var visual in cellVisuals)
+            foreach(var visual in CellVisuals)
             {
                 var localPos = visual.transform.localPosition;
                 localPos -= (Vector3)center;

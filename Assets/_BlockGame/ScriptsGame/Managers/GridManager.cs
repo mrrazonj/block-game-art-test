@@ -1,5 +1,7 @@
-using System;
 using ArtTest.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ArtTest.Game
@@ -13,17 +15,20 @@ namespace ArtTest.Game
 
         private int gridWidth = 9;
         private int gridHeight = 9;
+        public List<Cell> Cells;
         private Cell[,] gridCells;
 
         private bool isInitialized = false;
 
         public event Action<int> OnLinesCleared;
+        public event Action OnLinesCheckFinished;
 
         public void Initialize(GameSettings gameSettings)
         {
             gridWidth = gameSettings.GridWidth;
             gridHeight = gameSettings.GridHeight;
             gridCells = new Cell[gridWidth, gridHeight];
+            Cells = new();
 
             var areaWidth = gameAreaObject.GetComponent<SpriteRenderer>().bounds.size.x;
             var areaHeight = gameAreaObject.GetComponent<SpriteRenderer>().bounds.size.y;
@@ -44,110 +49,76 @@ namespace ArtTest.Game
                     {
                         cell = cellObject.AddComponent<Cell>();
                     }
+
+                    cell.x = i;
+                    cell.y = j;
+
                     gridCells[i, j] = cell;
+                    Cells.Add(cell);
+                    Debug.Log($"GridManager.Initialize: Created cell at ({i}, {j}) with position {cellObject.transform.localPosition}");
                 }
             }
 
             isInitialized = true;
         }
 
-        public Vector2Int GetClosestGridPosition(Vector3 worldPosition)
-        {
-            if (!isInitialized)
-            {
-                Debug.LogError("GridManager is not initialized.");
-                return Vector2Int.zero;
-            }
-
-            Vector3 localPosition = gameAreaObject.transform.InverseTransformPoint(worldPosition);
-
-            float cellWidth = gameAreaObject.GetComponent<SpriteRenderer>().bounds.size.x / gridWidth;
-            float cellHeight = gameAreaObject.GetComponent<SpriteRenderer>().bounds.size.y / gridHeight;
-
-            int x = Mathf.FloorToInt((localPosition.x + (gridWidth / 2f) * cellWidth) / cellWidth);
-            int y = Mathf.FloorToInt((localPosition.y + (gridHeight / 2f) * cellHeight) / cellHeight);
-
-            return new Vector2Int(x, y);
-        }
-
-        public bool CheckValidPlacement(Block block, Vector2Int position)
-        {
-            if (!isInitialized)
-            {
-                Debug.LogError("GridManager is not initialized.");
-                return false;
-            }
-
-            foreach (var cell in block.CellsOccupied)
-            {
-                int x = position.x + cell.x;
-                int y = position.y + cell.y;
-
-                print($"CheckValidPlacement: {x}, {y}");
-
-                if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight)
-                {
-                    return false; // Out of bounds
-                }
-                if (gridCells[x, y] != null && gridCells[x, y].IsOccupied)
-                {
-                    return false; // Cell is already occupied
-                }
-            }
-
-            return true; // Valid placement
-        }
-
-        public void PlaceBlock(Block block, Vector2Int position)
-        {
-            if (!isInitialized)
-            {
-                Debug.LogError("GridManager is not initialized.");
-                return;
-            }
-
-            if (!CheckValidPlacement(block, position))
-            {
-                Debug.LogError("Invalid placement for the block.");
-                return;
-            }
-
-            foreach (var cell in block.CellsOccupied)
-            {
-                int x = position.x + cell.x;
-                int y = position.y + cell.y;
-                gridCells[x, y].IsOccupied = true; // Mark the cell as occupied
-            }
-
-            int cleared = ClearLines();
-            OnLinesCleared?.Invoke(cleared);
-        }
-
-        public int ClearLines()
+        public void TryClearLines()
         {
             int linesCleared = 0;
+            List<Cell> cellsToClear = new List<Cell>();
+
             for (int y = 0; y < gridHeight; y++)
             {
-                bool isFullLine = true;
+                bool isFullRow = true;
                 for (int x = 0; x < gridWidth; x++)
                 {
-                    if (gridCells[x, y] == null || !gridCells[x, y].IsOccupied)
+                    if (gridCells[x, y].OccupyingBlock == null)
                     {
-                        isFullLine = false;
+                        isFullRow = false;
                         break;
                     }
                 }
-                if (isFullLine)
+
+                if (isFullRow)
                 {
                     linesCleared++;
-                    // Clear the line and shift down
                     for (int x = 0; x < gridWidth; x++)
                     {
-                        gridCells[x, y].IsOccupied = false;
+                        cellsToClear.Add(gridCells[x, y]);
                     }
                 }
             }
-            return linesCleared;
+
+            for (int x = 0; x < gridWidth; x++)
+            {
+                bool isFullColumn = false;
+                for (int y = 0; y < gridHeight; y++)
+                {
+                    if (gridCells[x, y].OccupyingBlock == null)
+                    {
+                        isFullColumn = false;
+                        break;
+                    }
+                }
+
+                if (isFullColumn)
+                {
+                    linesCleared++;
+                    for (int y = 0; y < gridHeight; y++)
+                    {
+                        cellsToClear.Add(gridCells[x, y]);
+                    }
+                }
+            }
+
+            foreach(Cell cell in cellsToClear)
+            {
+                Destroy(cell.OccupyingBlock);
+                cell.OccupyingBlock = null;
+            }
+
+            OnLinesCleared?.Invoke(linesCleared);
+            OnLinesCheckFinished?.Invoke();
         }
     }
 }

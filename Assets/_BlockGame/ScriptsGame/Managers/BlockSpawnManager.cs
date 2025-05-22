@@ -1,6 +1,6 @@
+using ArtTest.Models;
 using System;
 using System.Collections.Generic;
-using ArtTest.Models;
 using UnityEngine;
 
 namespace ArtTest.Game
@@ -9,6 +9,13 @@ namespace ArtTest.Game
     {
         [HideInInspector]
         public List<Block> ActiveBlocks { get; private set; }
+
+        private Vector3[] rotations = new Vector3[] {
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 90),
+            new Vector3(0, 0, 180),
+            new Vector3(0, 0, 270) 
+        };
 
         [SerializeField]
         private Transform[] spawnPoints;
@@ -19,10 +26,8 @@ namespace ArtTest.Game
         private BlockData[] blockData;
         private bool isInitialized = false;
 
-        private int gridWidth;
-        private int gridHeight;
-
-        public Action<Block> OnBlockSpawned;
+        public event Action<Block> OnBlockSpawned;
+        public event Action OnSpawnFinished;
 
         private void Start()
         {
@@ -67,30 +72,27 @@ namespace ArtTest.Game
                     draggableComponent = blockObject.AddComponent<Draggable>();
                 }
 
+                draggableComponent.OnDragEnd += HandleBlockDragEnd;
+
+                blockObject.transform.localEulerAngles += rotations[UnityEngine.Random.Range(0, rotations.Length)];
                 block.Initialize(data.Cells, data.BlockColor);
                 ActiveBlocks.Add(block);
 
                 OnBlockSpawned?.Invoke(block);
             }
+
+            OnSpawnFinished?.Invoke();
         }
 
-        public bool CanPlaceAnyBlock(GridManager gridManager, GameSettings gameSettings)
+        private void HandleBlockDragEnd(Block block)
         {
-            foreach (var block in ActiveBlocks)
+            ActiveBlocks.Remove(block);
+            if (ActiveBlocks.Count == 0)
             {
-                for (int x = 0; x < gameSettings.GridWidth; x++)
-                {
-                    for (int y = 0; y < gameSettings.GridHeight; y++)
-                    {
-                        var gridPosition = new Vector2Int(x, y);
-                        if (gridManager.CheckValidPlacement(block, gridPosition))
-                        {
-                            return true;
-                        }
-                    }
-                }
+                SpawnBlocks();
             }
-            return false;
+
+            block.GetComponent<Draggable>().OnDragEnd -= HandleBlockDragEnd;
         }
     }
 }

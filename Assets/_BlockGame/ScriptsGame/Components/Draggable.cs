@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace ArtTest.Game
 {
@@ -17,6 +18,12 @@ namespace ArtTest.Game
         private void Awake()
         {
             cachedCamera = Camera.main;
+            startPosition = transform.position;
+        }
+
+        private void ClearEvents()
+        {
+            OnDragEnd = null;
         }
 
         public void ResetPosition()
@@ -27,8 +34,6 @@ namespace ArtTest.Game
         public void OnMouseDown()
         {
             print($"OnMouseDown: {gameObject.name}");
-
-            startPosition = transform.position;
 
             Vector3 cursorWorldPos = cachedCamera.ScreenToWorldPoint(Input.mousePosition);
             cursorWorldPos.z = 0;
@@ -59,7 +64,32 @@ namespace ArtTest.Game
             }
             isDragging = false;
 
-            OnDragEnd?.Invoke(GetComponent<Block>());
+            var block = GetComponent<Block>();
+            var visuals = block.CellVisuals;
+
+            List<Cell> hitCells = new();
+            foreach (var visual in visuals)
+            {
+                Vector3 worldPosition = visual.transform.position;
+                Collider2D hit = Physics2D.OverlapPoint(worldPosition, LayerMask.GetMask("Grid"));
+
+                if (hit == null || !hit.TryGetComponent<Cell>(out var cell) || cell.OccupyingBlock != null)
+                {
+                    ResetPosition();
+                    return;
+                }
+
+                hitCells.Add(cell);
+            }
+
+            for (int i = 0; i < visuals.Count; i++)
+            {
+                visuals[i].transform.position = hitCells[i].transform.position;
+                hitCells[i].OccupyingBlock = visuals[i];
+            }
+
+            enabled = false;
+            OnDragEnd?.Invoke(block);
         }
     }
 }
