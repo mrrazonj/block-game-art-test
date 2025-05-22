@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: e1e793637c5bae644a43f33f1406868b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - gameAreaObject: {instanceID: 0}
+  - gridPrefab: {fileID: 853060870582251699, guid: b08583047e4d3434dafc80a1869c92dc, type: 3}
+  - gameSettings: {fileID: 11400000, guid: 78da421b006846948b261353b984b2f8, type: 2}
+  - gameTheme: {fileID: 11400000, guid: 158e8febf3eb45e47ba21ef91c3b6e63, type: 2}
+  - gridManager: {instanceID: 0}
+  - blockSpawnManager: {instanceID: 0}
+  - scoreText: {instanceID: 0}
+  - highScoreText: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

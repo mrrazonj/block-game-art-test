@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584fe7515d9bb6d4d85e823f113a36c2, type: 3}
+  m_Name: Default_GameTheme
+  m_EditorClassIdentifier: 
+  BlockSprite: {fileID: 8238172855963241938, guid: 56884c8b66cb93848ac9f5307414ae48, type: 3}
+  GridSquareSprite: {fileID: -3652762544301099115, guid: d4f2889767cd8574baf81850213351df, type: 3}
+  GridPanelSprite: {fileID: -3652762544301099115, guid: d4f2889767cd8574baf81850213351df, type: 3}
+  BackgroundSprite: {fileID: 0}

@@ -1,0 +1,19 @@
+{
+    "name": "ArtTestEditor",
+    "rootNamespace": "ArtTest.Editor",
+    "references": [
+        "GUID:121ac00a3da4bf44d8b7e56556dec7a7",
+        "GUID:54af4b1f468ec4143a0097d89a3fdfdd"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
