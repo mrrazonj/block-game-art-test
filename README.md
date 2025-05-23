@@ -1,5 +1,24 @@
 # Block Game Art Test Project
 
+## Getting Started
+### Scriptable Objects
+For reskinning / theming purposes: graphic assets, sounds, and block shapes can be modified via Scriptable Objects without touching and script/scene.
+<ol>
+    <li>Game Settings (Assets/_BlockGame/Data/GameSettings/) - Developers can set size of play grid area (WIP), score per line cleared at one instance, and remove/add block shapes here</li>
+    <li>Game Theme (Assets/_BlockGame/Data/GameTheme/) - Developers can set the sprite and audio clip asset here for gameplay objects</li>
+    <li>Block Data/Shapes (Assets/_BlockGame/Data/BlockShapes/) - Developers can create their own custom block shapes here and their associated color</li>
+</ol>
+
+### Limitations
+Since the gameplay is made via 2D gameobjects, for proper scaling sprite replacements must follow the current size of the implemented one.
+<ol>
+    <li>Gameplay/Grid Panel - 940px x 940px</li>
+    <li>Grid Cell - 100px x 100px</li>
+    <li>Background Image - 1080px x 1920px (WIP)</li>
+    <li>Block Cell - 100px x 100px (For proper coloring, sprite must be grayscaled)</li>
+</ol>
+
+
 ## Implementation checklist
 ### Done
 <ul> 
@@ -17,10 +36,6 @@
     <li>Scoring system</li>
     <li>Game over condition</li>
     <li>Serialization (local highscore saving)</li>
-</ul>
-
-### To do
-<ul>
     <li>Canvas UI</li>
         <ul>
             <li>Score and highscore view</li>
@@ -30,21 +45,20 @@
     <li>Visuals + Polish</li>
         <ul>
             <li>Animations/particles on line clear</li>
-            <li>Score animations</li>
             <li>Menu and panels animations</li>
             <li>Sound FX</li>
         </ul>
     <li>Automatic adjustment of play area based on device screen resolution / aspect ratio</li>
 </ul>
 
-### Samples / Preview
-**Game Settings Default SO**
-![](Docs/Images/GameSettings_SO.png)
-**Game Theme Default SO**
-![](Docs/Images/GameTheme_SO.png)
-**I Block Data SO**
-![](Docs/Images/Block_SO01.png)
-**T Block Default SO**
-![](Docs/Images/Block_SO02.png)
-**Actual Game - Day 01 Progress**
-![](Docs/Images/GameProgress_Day01.png)
+## Tools and Assets Used
+<ol>
+    <li>Unity 6 - 6000.0.23f1</li>
+    <li>Leantween - For animation</li>
+    <li>TextMeshPro - For text assets</li>
+    <li>Newtonsoft Json - For data serialization</li>
+    <li>2D Casual UI - For basic UI assets</li>
+</ol>
+
+## Samples / Preview
+APK link: https://drive.google.com/file/d/1fQJZB7ZZxT_hfvvPt6zL5GKcB73EUVmM/view?usp=drive_link
