@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BlockSprite: {fileID: 6147291377135086224, guid: d6b0d9e1091537b48b912b59d99c3904, type: 3}
   GridSquareSprite: {fileID: -3652762544301099115, guid: d4f2889767cd8574baf81850213351df, type: 3}
-  GridPanelSprite: {fileID: -3652762544301099115, guid: d4f2889767cd8574baf81850213351df, type: 3}
+  GridPanelSprite: {fileID: 1070620995727055781, guid: 0f9745de317c35c459d6426fa1b9a1b6, type: 3}
   BackgroundSprite: {fileID: 0}
-  BlockPlaceSound: {fileID: 8300000, guid: 7a670431ad2c04f43b647fa3a1ab3a7d, type: 3}
+  Bgm: {fileID: 8300000, guid: 25495a4b2902a644495b36ade5e43a77, type: 3}
+  BlockPlaceSound:
+  - {fileID: 8300000, guid: 7a670431ad2c04f43b647fa3a1ab3a7d, type: 3}
+  - {fileID: 8300000, guid: e5b29623bedbdca4b94e62c283a20d43, type: 3}
+  - {fileID: 8300000, guid: e5b29623bedbdca4b94e62c283a20d43, type: 3}
+  - {fileID: 8300000, guid: 037681170f6b384449e04b2d0dba2130, type: 3}
   BlockPickUpSound: {fileID: 8300000, guid: f658fd4d7189cd24d96eef2e4c0a2552, type: 3}

@@ -17,7 +17,7 @@ namespace ArtTest.Game
             new Vector3(0, 0, 270) 
         };
 
-        private Vector3 spawnZOffset = new Vector3(0, 0, -1);
+        private Vector3 spawnZOffset = new Vector3(0, 0, -2);
 
         [SerializeField]
         private Transform[] spawnPoints;
@@ -79,7 +79,7 @@ namespace ArtTest.Game
                 draggableComponent.OnDragEnd += HandleBlockDragEnd;
 
                 blockObject.transform.localEulerAngles += rotations[UnityEngine.Random.Range(0, rotations.Length)];
-                block.Initialize(data.Cells, data.BlockColor);
+                block.Initialize(cachedSprite, data.Cells, data.BlockColor);
                 ActiveBlocks.Add(block);
 
                 OnBlockSpawned?.Invoke(block);

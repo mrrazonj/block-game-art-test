@@ -44,7 +44,7 @@ namespace ArtTest.Game
                     cellObject.transform.localPosition = new Vector3(
                         (i - gridWidth / 2) * (areaWidth / gridWidth),
                         (j - gridHeight / 2) * (areaHeight / gridHeight),
-                        0
+                        -1
                     );
 
                     var cell = cellObject.GetComponent<Cell>();
@@ -115,58 +115,84 @@ namespace ArtTest.Game
                 }
             }
 
-            var cellsToClearCopy = new List<Cell>(cellsToClear);
             // Destroy blocks in the cells to clear
+            var cellsToClearCopy = new List<Cell>(cellsToClear);
             foreach (Cell cell in cellsToClearCopy)
             {
-                switch(linesCleared)
+                var blockParent = cell.OccupyingBlock.transform.parent;
+                switch (linesCleared)
                 {
                     case 0:
                         break;
                     case 1:
                         LeanTween.color(cell.OccupyingBlock, Color.black, 0.5f);
-                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.3f).setEaseInBack().setOnComplete(() =>
                         {
                             Destroy(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
+
+                            if (blockParent.childCount == 0)
+                            {
+                                Destroy(blockParent.gameObject);
+                            }
                         });
                         break;
                     case 2:
                         LeanTween.color(cell.OccupyingBlock, Color.white, 0.5f);
-                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.4f).setEaseInBack().setOnComplete(() =>
                         {
                             Destroy(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
                         });
+
+                        if (blockParent.childCount == 0)
+                        {
+                            Destroy(blockParent.gameObject);
+                        }
                         break;
                     case 3:
-                        LeanTween.color(cell.OccupyingBlock, Color.yellow, 0.5f);
+                        LeanTween.color(cell.OccupyingBlock, Color.cyan, 0.5f);
                         LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
                         {
                             Destroy(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
                         });
+
+                        if (blockParent.childCount == 0)
+                        {
+                            Destroy(blockParent.gameObject);
+                        }
                         break;
                     case 4:
-                        LeanTween.color(cell.OccupyingBlock, Color.red, 0.5f);
+                        LeanTween.color(cell.OccupyingBlock, Color.yellow, 0.5f);
                         LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.8f).setEaseInBack().setOnComplete(() =>
                         {
                             Destroy(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
                         });
+
+                        if (blockParent.childCount == 0)
+                        {
+                            Destroy(blockParent.gameObject);
+                        }
                         break;
                     default:
-                        LeanTween.color(cell.OccupyingBlock, Color.green, 0.5f);
+                        LeanTween.color(cell.OccupyingBlock, Color.red, 0.5f);
                         LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 1f).setEaseInBack().setOnComplete(() =>
                         {
                             Destroy(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
                         });
+
+                        if (blockParent.childCount == 0)
+                        {
+                            Destroy(blockParent.gameObject);
+                        }
                         break;
                 }
             }

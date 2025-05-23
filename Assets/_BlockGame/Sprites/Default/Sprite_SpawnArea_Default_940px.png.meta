@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Sprite_SpawnArea_Default_940px_0: 8252084503611646781
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

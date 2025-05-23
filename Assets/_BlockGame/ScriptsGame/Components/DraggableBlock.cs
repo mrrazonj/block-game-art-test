@@ -14,7 +14,9 @@ namespace ArtTest.Game
         private bool isDragging = false;
         private bool isPlaced = false;
 
-        private Vector3 placeZOffset = new Vector3(0, 0, -1);
+        private List<GameObject> ghostObjects = new();
+
+        private Vector3 placeZOffset = new Vector3(0, 0, -2);
 
         public event Action<Block> OnDragEnd;
 
@@ -57,11 +59,45 @@ namespace ArtTest.Game
                 return;
             }
 
+            foreach(var ghostObject in ghostObjects)
+            {
+                Destroy(ghostObject);
+            }
+            ghostObjects.Clear();
+
             Vector3 cursorWorldPos = cachedCamera.ScreenToWorldPoint(Input.mousePosition);
             cursorWorldPos.z = -1;
 
+            List<Cell> hoveringCells = new();
+            var visuals = GetComponent<Block>().CellVisuals;
+            foreach (var visual in visuals)
+            {
+                Vector3 worldPosition = visual.transform.position;
+                Collider2D hit = Physics2D.OverlapPoint(worldPosition, LayerMask.GetMask("Grid"));
+
+                if (hit == null || !hit.TryGetComponent<Cell>(out var cell) || cell.OccupyingBlock != null)
+                {
+                    continue;
+                }
+
+                var ghostObject = Instantiate(visual, transform);
+                ghostObject.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.3f);
+
+                ghostObjects.Add(ghostObject);
+                hoveringCells.Add(cell);
+            }
+
+            if (ghostObjects.Count != 0)
+            {
+                for(int i = 0; i < ghostObjects.Count; i++)
+                {
+                    ghostObjects[i].transform.position = hoveringCells[i].transform.position;
+                }
+            }
+
             float distance = Vector3.Distance(startPosition, cursorWorldPos);
-            transform.position = cursorWorldPos + offset;
+            float dragFactor = 1 + distance * 0.15f; // Dynamic Drag Offset
+            transform.position = cursorWorldPos + offset * dragFactor;
         }
 
         public void OnMouseUp()
@@ -71,6 +107,12 @@ namespace ArtTest.Game
                 return;
             }
             isDragging = false;
+
+            foreach (var ghostObject in ghostObjects)
+            {
+                Destroy(ghostObject);
+            }
+            ghostObjects.Clear();
 
             var block = GetComponent<Block>();
             var visuals = block.CellVisuals;
@@ -97,7 +139,6 @@ namespace ArtTest.Game
             }
 
             isPlaced = true;
-            BlockGameManager.Instance.PlayPlaceSfx();
 
             enabled = false;
             OnDragEnd?.Invoke(block);

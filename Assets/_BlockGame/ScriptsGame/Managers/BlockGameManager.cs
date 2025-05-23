@@ -10,7 +10,8 @@ namespace ArtTest.Game
     public class BlockGameManager : MonoBehaviour
     {
         public static BlockGameManager Instance;
-        public AudioSource AudioSource;
+        public AudioSource BgmPlayer;
+        public AudioSource SfxPlayer;
 
         [SerializeField]
         private GameSettings gameSettings;
@@ -24,11 +25,14 @@ namespace ArtTest.Game
         [SerializeField]
         private BlockSpawnManager blockSpawnManager;
         [SerializeField]
-        private TextMeshProUGUI scoreText, highScoreText;
+        private TextMeshPro scoreText;
+        [SerializeField]
+        private SpriteRenderer gameArea;
 
         private int score;
         private int highScore;
 
+        private string highScoreHolderName = string.Empty;
         private const string highScoreKey = "highscore";
 
         private bool isGameOverCheckerInitialized = false;
@@ -53,11 +57,15 @@ namespace ArtTest.Game
                 {
                     var data = result.FromJson<Models.HighScoreEntry>();
                     highScore = data.Score;
-
+                    highScoreHolderName = $"{data.PlayerName}'s";
                     UpdateUI();
                 });
 
-            AudioSource = GetComponent<AudioSource>();
+            BgmPlayer.clip = gameTheme.Bgm;
+            BgmPlayer.Play();
+            BgmPlayer.loop = true;
+
+            gameArea.sprite = gameTheme.GridPanelSprite;
 
             ConnectUIManager(uiManager);
             ConnectBlockSpawnManager(blockSpawnManager);
@@ -81,13 +89,6 @@ namespace ArtTest.Game
             {
                 uiManager = this.uiManager;
             }
-
-            uiManager.OnNameInputSubmitted += HandleNameInputSubmitted;
-        }
-
-        private void HandleNameInputSubmitted(string name)
-        {
-            playerName = name;
         }
 
         private void ConnectBlockSpawnManager(BlockSpawnManager blockSpawnManager = null)
@@ -164,6 +165,7 @@ namespace ArtTest.Game
 
         private void HandleLinesCleared(int linesCleared)
         {
+            PlayPlaceSfx(linesCleared);
             AddScore(linesCleared);
         }
 
@@ -179,6 +181,7 @@ namespace ArtTest.Game
             if (score > highScore)
             {
                 highScore = score;
+                highScoreHolderName = "Your";
             }
 
             OnScoreChanged?.Invoke(score);
@@ -189,12 +192,9 @@ namespace ArtTest.Game
         {
             if (scoreText != null)
             {
-                scoreText.text = $"Score: {score}";
-            }
-
-            if (highScoreText != null)
-            {
-                highScoreText.text = $"High Score: {highScore}";
+                scoreText.text = 
+                    $"Score: {score}\n" +
+                    $"{highScoreHolderName} Highscore: {highScore}";
             }
         }
 
@@ -268,7 +268,7 @@ namespace ArtTest.Game
             uiManager.ShowGameOverUI(score, highScore);
         }
 
-        public void SaveHighScore(string playerName = "")
+        public void SaveHighScore()
         {
             if (score < highScore)
             {
@@ -277,10 +277,7 @@ namespace ArtTest.Game
                 return;
             }
 
-            if (string.IsNullOrEmpty(playerName))
-            {
-                playerName = this.playerName;
-            }
+            playerName = uiManager.GetPlayerName();
 
             var entry = new Models.HighScoreEntry
             {
@@ -294,14 +291,16 @@ namespace ArtTest.Game
             RestartGame();
         }
 
-        public void PlayPlaceSfx()
+        public void PlayPlaceSfx(int linesCleared)
         {
-            AudioSource.PlayOneShot(gameTheme.BlockPlaceSound);
+            int clampedIndex = Mathf.Clamp(linesCleared, 0, gameTheme.BlockPlaceSound.Length -1);
+            SfxPlayer.PlayOneShot(gameTheme.BlockPlaceSound[0]);
+            SfxPlayer.PlayOneShot(gameTheme.BlockPlaceSound[clampedIndex]);
         }
 
         public void PlayPickUpSfx()
         {
-            AudioSource.PlayOneShot(gameTheme.BlockPickUpSound);
+            SfxPlayer.PlayOneShot(gameTheme.BlockPickUpSound);
         }
 
         public void QuitGame()

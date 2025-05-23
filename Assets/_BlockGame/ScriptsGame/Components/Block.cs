@@ -14,12 +14,12 @@ namespace ArtTest.Game
         private GameObject cellVisualPrefab;
         public List<GameObject> CellVisuals = new();
 
-        public void Initialize(List<Vector2Int> shape, Color color)
+        public void Initialize(Sprite sprite, List<Vector2Int> shape, Color color)
         {
             CellsOccupied = shape;
             blockColor = color;
 
-            foreach(var visual in CellVisuals)
+            foreach (var visual in CellVisuals)
             {
                 Destroy(visual);
             }
@@ -29,6 +29,7 @@ namespace ArtTest.Game
             foreach (var cell in CellsOccupied)
             {
                 var cellVisual = Instantiate(cellVisualPrefab, transform).GetComponent<SpriteRenderer>();
+                cellVisual.sprite = sprite;
                 cellVisual.color = blockColor;
                 cellVisual.transform.localPosition = new Vector3(cell.x, cell.y, 0);
                 CellVisuals.Add(cellVisual.gameObject);

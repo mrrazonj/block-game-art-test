@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Sprite_Block_Brighter_100px_0: 6147291377135086224
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -26,24 +26,18 @@ namespace ArtTest.Game
         public void Initialize()
         {
             Awake();
-            nameInput.GetComponent<TMP_InputField>().onEndEdit.AddListener(HandleNameEditFinish);
         }
 
         public void ShowGameOverUI(int currentScore, int highScore)
         {
             gameOverBlackoutPanel.SetActive(true);
             scoreLabel.GetComponent<TextMeshProUGUI>().text = $"Score: {currentScore}\nHigh Score: {highScore}";
-            LeanTween.scale(gameOverPanel, Vector3.one, 0.5f).setEaseOutBack();
+            LeanTween.scale(gameOverPanel, Vector3.one, 1f).setEaseOutBack();
         }
 
-        private void HandleNameEditFinish(string name)
+        public string GetPlayerName()
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                return;
-            }
-
-            OnNameInputSubmitted?.Invoke(name);
+            return nameInput.GetComponent<TMP_InputField>().text;
         }
     }
 }
