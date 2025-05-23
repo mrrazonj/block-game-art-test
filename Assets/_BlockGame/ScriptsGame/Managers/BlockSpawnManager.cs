@@ -17,6 +17,8 @@ namespace ArtTest.Game
             new Vector3(0, 0, 270) 
         };
 
+        private Vector3 spawnZOffset = new Vector3(0, 0, -1);
+
         [SerializeField]
         private Transform[] spawnPoints;
 
@@ -24,6 +26,7 @@ namespace ArtTest.Game
         private GameObject blockPrefab;
 
         private BlockData[] blockData;
+        private Sprite cachedSprite;
         private bool isInitialized = false;
 
         public event Action<Block> OnBlockSpawned;
@@ -34,7 +37,7 @@ namespace ArtTest.Game
             SpawnBlocks();
         }
 
-        public void Initialize(GameSettings gameSettings)
+        public void Initialize(GameSettings gameSettings, GameTheme gameTheme)
         {
             if (isInitialized)
             {
@@ -42,6 +45,7 @@ namespace ArtTest.Game
             }
 
             print($"BlockSpawnManager.Initialize: {gameSettings.BlockData.Length} blocks available for spawning.");
+            cachedSprite = gameTheme.BlockSprite;
             blockData = gameSettings.BlockData;
 
             ActiveBlocks = new List<Block>();
@@ -63,13 +67,13 @@ namespace ArtTest.Game
                 var randomIndex = UnityEngine.Random.Range(0, blockData.Length);
                 var data = blockData[randomIndex];
 
-                var blockObject = Instantiate(blockPrefab, spawnPoint.position, Quaternion.identity);
+                var blockObject = Instantiate(blockPrefab, spawnPoint.position + spawnZOffset, Quaternion.identity);
 
                 var block = blockObject.GetComponent<Block>();
-                var draggableComponent = blockObject.GetComponent<Draggable>();
+                var draggableComponent = blockObject.GetComponent<DraggableBlock>();
                 if (!draggableComponent)
                 {
-                    draggableComponent = blockObject.AddComponent<Draggable>();
+                    draggableComponent = blockObject.AddComponent<DraggableBlock>();
                 }
 
                 draggableComponent.OnDragEnd += HandleBlockDragEnd;
@@ -92,7 +96,7 @@ namespace ArtTest.Game
                 SpawnBlocks();
             }
 
-            block.GetComponent<Draggable>().OnDragEnd -= HandleBlockDragEnd;
+            block.GetComponent<DraggableBlock>().OnDragEnd -= HandleBlockDragEnd;
         }
     }
 }

@@ -3,18 +3,22 @@ using ArtTest.Utilities;
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ArtTest.Game
 {
     public class BlockGameManager : MonoBehaviour
     {
         public static BlockGameManager Instance;
+        public AudioSource AudioSource;
 
         [SerializeField]
         private GameSettings gameSettings;
         [SerializeField]
         private GameTheme gameTheme;
 
+        [SerializeField]
+        private UIManager uiManager;
         [SerializeField]
         private GridManager gridManager;
         [SerializeField]
@@ -29,6 +33,7 @@ namespace ArtTest.Game
 
         private bool isGameOverCheckerInitialized = false;
 
+        private string playerName = string.Empty;
         public event Action<int> OnScoreChanged;
         public event Action OnGameEnd;
 
@@ -52,9 +57,37 @@ namespace ArtTest.Game
                     UpdateUI();
                 });
 
+            AudioSource = GetComponent<AudioSource>();
+
+            ConnectUIManager(uiManager);
             ConnectBlockSpawnManager(blockSpawnManager);
             ConnectGridManager(gridManager);
             UpdateUI();
+        }
+
+        private void ConnectUIManager(UIManager uiManager = null)
+        {
+            if (uiManager == null && this.uiManager == null)
+            {
+                uiManager = FindFirstObjectByType<UIManager>();
+                if (uiManager == null)
+                {
+                    Debug.LogError("UIManager is not assigned.");
+                    return;
+                }
+            }
+
+            if (uiManager != null)
+            {
+                uiManager = this.uiManager;
+            }
+
+            uiManager.OnNameInputSubmitted += HandleNameInputSubmitted;
+        }
+
+        private void HandleNameInputSubmitted(string name)
+        {
+            playerName = name;
         }
 
         private void ConnectBlockSpawnManager(BlockSpawnManager blockSpawnManager = null)
@@ -74,7 +107,7 @@ namespace ArtTest.Game
                 blockSpawnManager = this.blockSpawnManager;
             }
 
-            blockSpawnManager.Initialize(gameSettings);
+            blockSpawnManager.Initialize(gameSettings, gameTheme);
             blockSpawnManager.OnBlockSpawned -= HandleOnBlockSpawned;
             blockSpawnManager.OnBlockSpawned += HandleOnBlockSpawned;
 
@@ -89,7 +122,7 @@ namespace ArtTest.Game
 
         private void HandleOnBlockSpawned(Block block)
         {
-            var draggable = block.GetComponent<Draggable>();
+            var draggable = block.GetComponent<DraggableBlock>();
             draggable.OnDragEnd += HandleOnDragEnd;
         }
 
@@ -195,7 +228,7 @@ namespace ArtTest.Game
 
         private bool CanPlaceBlock(Block block)
         {
-            var draggable = block.GetComponent<Draggable>();
+            var draggable = block.GetComponent<DraggableBlock>();
 
             foreach (var cell in gridManager.Cells)
             {
@@ -232,16 +265,53 @@ namespace ArtTest.Game
         public void TriggerGameEnd()
         {
             OnGameEnd?.Invoke();
+            uiManager.ShowGameOverUI(score, highScore);
         }
 
-        public void SaveHighScore(string playerName)
+        public void SaveHighScore(string playerName = "")
         {
+            if (score < highScore)
+            {
+                Debug.Log("Score is less than high score. Not saving.");
+                RestartGame();
+                return;
+            }
+
+            if (string.IsNullOrEmpty(playerName))
+            {
+                playerName = this.playerName;
+            }
+
             var entry = new Models.HighScoreEntry
             {
                 PlayerName = playerName,
                 Score = highScore
             };
+
             Utilities.Utilities.GetFileIO(highScoreKey).SaveToFile(highScoreKey, entry.ToJson());
+            Debug.Log($"High score saved: {playerName} - {highScore}");
+
+            RestartGame();
+        }
+
+        public void PlayPlaceSfx()
+        {
+            AudioSource.PlayOneShot(gameTheme.BlockPlaceSound);
+        }
+
+        public void PlayPickUpSfx()
+        {
+            AudioSource.PlayOneShot(gameTheme.BlockPickUpSound);
+        }
+
+        public void QuitGame()
+        {
+            Application.Quit();
+        }
+
+        public void RestartGame()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 }

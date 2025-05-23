@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 584fe7515d9bb6d4d85e823f113a36c2, type: 3}
   m_Name: Default_GameTheme
   m_EditorClassIdentifier: 
-  BlockSprite: {fileID: 8238172855963241938, guid: 56884c8b66cb93848ac9f5307414ae48, type: 3}
+  BlockSprite: {fileID: 6147291377135086224, guid: d6b0d9e1091537b48b912b59d99c3904, type: 3}
   GridSquareSprite: {fileID: -3652762544301099115, guid: d4f2889767cd8574baf81850213351df, type: 3}
   GridPanelSprite: {fileID: -3652762544301099115, guid: d4f2889767cd8574baf81850213351df, type: 3}
   BackgroundSprite: {fileID: 0}
+  BlockPlaceSound: {fileID: 8300000, guid: 7a670431ad2c04f43b647fa3a1ab3a7d, type: 3}
+  BlockPickUpSound: {fileID: 8300000, guid: f658fd4d7189cd24d96eef2e4c0a2552, type: 3}

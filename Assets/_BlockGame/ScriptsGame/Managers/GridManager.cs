@@ -1,8 +1,10 @@
 using ArtTest.Models;
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ArtTest.Game
 {
@@ -19,6 +21,7 @@ namespace ArtTest.Game
         private Cell[,] gridCells;
 
         private bool isInitialized = false;
+        HashSet<Cell> cellsToClear = new HashSet<Cell>();
 
         public event Action<int> OnLinesCleared;
         public event Action OnLinesCheckFinished;
@@ -65,8 +68,8 @@ namespace ArtTest.Game
         public void TryClearLines()
         {
             int linesCleared = 0;
-            List<Cell> cellsToClear = new List<Cell>();
 
+            // Check rows
             for (int y = 0; y < gridHeight; y++)
             {
                 bool isFullRow = true;
@@ -89,9 +92,10 @@ namespace ArtTest.Game
                 }
             }
 
+            // Check columns
             for (int x = 0; x < gridWidth; x++)
             {
-                bool isFullColumn = false;
+                bool isFullColumn = true;
                 for (int y = 0; y < gridHeight; y++)
                 {
                     if (gridCells[x, y].OccupyingBlock == null)
@@ -111,11 +115,68 @@ namespace ArtTest.Game
                 }
             }
 
-            foreach(Cell cell in cellsToClear)
+            var cellsToClearCopy = new List<Cell>(cellsToClear);
+            // Destroy blocks in the cells to clear
+            foreach (Cell cell in cellsToClearCopy)
             {
-                Destroy(cell.OccupyingBlock);
-                cell.OccupyingBlock = null;
+                switch(linesCleared)
+                {
+                    case 0:
+                        break;
+                    case 1:
+                        LeanTween.color(cell.OccupyingBlock, Color.black, 0.5f);
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
+                        {
+                            Destroy(cell.OccupyingBlock);
+                            cell.OccupyingBlock = null;
+                            cellsToClear.Remove(cell);
+                        });
+                        break;
+                    case 2:
+                        LeanTween.color(cell.OccupyingBlock, Color.white, 0.5f);
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
+                        {
+                            Destroy(cell.OccupyingBlock);
+                            cell.OccupyingBlock = null;
+                            cellsToClear.Remove(cell);
+                        });
+                        break;
+                    case 3:
+                        LeanTween.color(cell.OccupyingBlock, Color.yellow, 0.5f);
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
+                        {
+                            Destroy(cell.OccupyingBlock);
+                            cell.OccupyingBlock = null;
+                            cellsToClear.Remove(cell);
+                        });
+                        break;
+                    case 4:
+                        LeanTween.color(cell.OccupyingBlock, Color.red, 0.5f);
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.8f).setEaseInBack().setOnComplete(() =>
+                        {
+                            Destroy(cell.OccupyingBlock);
+                            cell.OccupyingBlock = null;
+                            cellsToClear.Remove(cell);
+                        });
+                        break;
+                    default:
+                        LeanTween.color(cell.OccupyingBlock, Color.green, 0.5f);
+                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 1f).setEaseInBack().setOnComplete(() =>
+                        {
+                            Destroy(cell.OccupyingBlock);
+                            cell.OccupyingBlock = null;
+                            cellsToClear.Remove(cell);
+                        });
+                        break;
+                }
             }
+
+            CallEventWhenLinesFinishClearing(linesCleared);
+        }
+
+        public async void CallEventWhenLinesFinishClearing(int linesCleared)
+        {
+            await UniTask.WaitUntil(() => cellsToClear.Count == 0);
 
             OnLinesCleared?.Invoke(linesCleared);
             OnLinesCheckFinished?.Invoke();

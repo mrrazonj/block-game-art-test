@@ -14,5 +14,19 @@ namespace ArtTest.Game
             if (collider == null)
                 gameObject.AddComponent<BoxCollider2D>().isTrigger = true;
         }
+
+        public override bool Equals(object other)
+        {
+            if (other is Cell cell)
+            {
+                return x == cell.x && y == cell.y;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash128.Compute($"{x},{y}").GetHashCode();
+        }
     }
 }

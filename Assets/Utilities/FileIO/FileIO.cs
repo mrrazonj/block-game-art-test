@@ -13,13 +13,9 @@ namespace ArtTest.Utilities
         {
             try
             {
-                if (!Directory.Exists(filePath))
-                {
-                    ValidateFilePath(filePath);
-                }
+                ValidateFilePath(filePath);
 
                 fileName += fileExtension;
-
                 if (!File.Exists(filePath + fileName))
                 {
                     File.Create(filePath + fileName).Dispose();
@@ -85,7 +81,8 @@ namespace ArtTest.Utilities
             for (int i = 0; i < splitPath.Length - 1; i++)
             {
                 currentPath += splitPath[i] + '/';
-                if (Directory.Exists(currentPath))
+                Debug.Log("Validating path: " + currentPath);
+                if (!Directory.Exists(currentPath))
                 {
                     Directory.CreateDirectory(currentPath);
                 }

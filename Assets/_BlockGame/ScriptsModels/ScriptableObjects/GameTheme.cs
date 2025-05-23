@@ -12,5 +12,9 @@ namespace ArtTest.Models
         public Sprite GridSquareSprite;
         public Sprite GridPanelSprite;
         public Sprite BackgroundSprite;
+
+        [Header("Sound Theme")]
+        public AudioClip BlockPlaceSound;
+        public AudioClip BlockPickUpSound;
     }
 }
