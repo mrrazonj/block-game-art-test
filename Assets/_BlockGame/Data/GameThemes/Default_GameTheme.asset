@@ -23,3 +23,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: e5b29623bedbdca4b94e62c283a20d43, type: 3}
   - {fileID: 8300000, guid: 037681170f6b384449e04b2d0dba2130, type: 3}
   BlockPickUpSound: {fileID: 8300000, guid: f658fd4d7189cd24d96eef2e4c0a2552, type: 3}
+  Clear1: {fileID: 8181930469490159343, guid: 0814c7ff925b9f3479525f2595d36869, type: 3}
+  Clear2: {fileID: 8181930469490159343, guid: 69518a79ab2a7a4468c6fb5c50a16572, type: 3}
+  Clear3: {fileID: 8181930469490159343, guid: 69518a79ab2a7a4468c6fb5c50a16572, type: 3}
+  Clear4OrMore: {fileID: 8181930469490159343, guid: 99179610577fa35409fa4027f58667bf, type: 3}

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ArtTest.Game
 {
-    public class DraggableBlock : MonoBehaviour
+    public class DragComponent : MonoBehaviour
     {
         private Vector3 startPosition;
         private Vector3 offset;
@@ -16,6 +16,7 @@ namespace ArtTest.Game
 
         private List<GameObject> ghostObjects = new();
 
+        private Vector3 spawnSize = new Vector3(0.66f, 0.66f, 1f);
         private Vector3 placeZOffset = new Vector3(0, 0, -2);
 
         public event Action<Block> OnDragEnd;
@@ -23,17 +24,23 @@ namespace ArtTest.Game
         private void Awake()
         {
             cachedCamera = Camera.main;
-            startPosition = transform.position;
         }
 
-        private void ClearEvents()
+        public void SetStartPosition(Vector3 position)
         {
-            OnDragEnd = null;
+            isPlaced = false;
+            startPosition = position;
+            ResetPosition();
         }
 
         public void ResetPosition()
         {
+            if (isDragging)
+            {
+                return;
+            }
             transform.position = startPosition;
+            transform.localScale = spawnSize;
         }
 
         public void OnMouseDown()
@@ -42,6 +49,8 @@ namespace ArtTest.Game
             {
                 return;
             }
+
+            LeanTween.scale(gameObject, Vector3.one, 0.3f).setEaseOutBack();
 
             BlockGameManager.Instance.PlayPickUpSfx();
 
@@ -70,6 +79,7 @@ namespace ArtTest.Game
 
             List<Cell> hoveringCells = new();
             var visuals = GetComponent<Block>().CellVisuals;
+            bool isValidPlacement = true;
             foreach (var visual in visuals)
             {
                 Vector3 worldPosition = visual.transform.position;
@@ -77,6 +87,7 @@ namespace ArtTest.Game
 
                 if (hit == null || !hit.TryGetComponent<Cell>(out var cell) || cell.OccupyingBlock != null)
                 {
+                    isValidPlacement = false;
                     continue;
                 }
 
@@ -92,6 +103,10 @@ namespace ArtTest.Game
                 for(int i = 0; i < ghostObjects.Count; i++)
                 {
                     ghostObjects[i].transform.position = hoveringCells[i].transform.position;
+                    if (!isValidPlacement)
+                    {
+                        ghostObjects[i].GetComponent<SpriteRenderer>().color = new Color(1, 0, 0, 0.3f); // Red color for invalid placement
+                    }
                 }
             }
 
@@ -139,8 +154,6 @@ namespace ArtTest.Game
             }
 
             isPlaced = true;
-
-            enabled = false;
             OnDragEnd?.Invoke(block);
         }
     }

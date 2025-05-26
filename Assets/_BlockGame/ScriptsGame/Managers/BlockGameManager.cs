@@ -123,7 +123,7 @@ namespace ArtTest.Game
 
         private void HandleOnBlockSpawned(Block block)
         {
-            var draggable = block.GetComponent<DraggableBlock>();
+            var draggable = block.GetComponent<DragComponent>();
             draggable.OnDragEnd += HandleOnDragEnd;
         }
 
@@ -149,7 +149,7 @@ namespace ArtTest.Game
                 gridManager = this.gridManager;
             }
 
-            gridManager.Initialize(gameSettings);
+            gridManager.Initialize(gameSettings, gameTheme, ref blockSpawnManager.BlockPool, ref blockSpawnManager.BlockVisualPool);
 
             this.gridManager.OnLinesCleared -= HandleLinesCleared;
             this.gridManager.OnLinesCleared += HandleLinesCleared;
@@ -228,7 +228,7 @@ namespace ArtTest.Game
 
         private bool CanPlaceBlock(Block block)
         {
-            var draggable = block.GetComponent<DraggableBlock>();
+            var draggable = block.GetComponent<DragComponent>();
 
             foreach (var cell in gridManager.Cells)
             {
@@ -246,6 +246,7 @@ namespace ArtTest.Game
 
         private bool TrySimulatePlacement(Block block, Vector3 simulatedPosition)
         {
+            block.transform.localScale = Vector3.one;
             Vector3 offset = simulatedPosition - block.CellVisuals[0].transform.position;
 
             foreach(var visual in block.CellVisuals)

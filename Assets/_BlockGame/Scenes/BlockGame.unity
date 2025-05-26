@@ -3141,6 +3141,7 @@ MonoBehaviour:
   - {fileID: 1938377736}
   - {fileID: 570434196}
   blockPrefab: {fileID: 6266368026207199154, guid: 0ae10603820362e4c94511794f49817e, type: 3}
+  blockVisualPrefab: {fileID: 3283620979430437069, guid: 62ceb320293c69d47946d7e3f5e1b48e, type: 3}
 --- !u!4 &1992213004
 Transform:
   m_ObjectHideFlags: 0

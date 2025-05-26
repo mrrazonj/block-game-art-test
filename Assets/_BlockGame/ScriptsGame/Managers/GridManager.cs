@@ -2,9 +2,8 @@ using ArtTest.Models;
 using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Pool;
 
 namespace ArtTest.Game
 {
@@ -15,23 +14,40 @@ namespace ArtTest.Game
         [SerializeField]
         private GameObject gridPrefab;
 
+        private Dictionary<int, GameObject> scoreToEffectObjectMap;
+
         private int gridWidth = 9;
         private int gridHeight = 9;
         public List<Cell> Cells;
         private Cell[,] gridCells;
 
         private bool isInitialized = false;
-        HashSet<Cell> cellsToClear = new HashSet<Cell>();
+        private HashSet<Cell> cellsToClear = new HashSet<Cell>();
+        private HashSet<Block> blocksToCheck = new HashSet<Block>();
+
+        private ObjectPool<Block> blocksPool;
+        private ObjectPool<GameObject> visualsPool;
 
         public event Action<int> OnLinesCleared;
         public event Action OnLinesCheckFinished;
 
-        public void Initialize(GameSettings gameSettings)
+        public void Initialize(GameSettings gameSettings, GameTheme gameTheme, ref ObjectPool<Block> blocksPool, ref ObjectPool<GameObject> visualsPool)
         {
             gridWidth = gameSettings.GridWidth;
             gridHeight = gameSettings.GridHeight;
             gridCells = new Cell[gridWidth, gridHeight];
             Cells = new();
+
+            scoreToEffectObjectMap = new Dictionary<int, GameObject>();
+            scoreToEffectObjectMap.TryAdd(0, null);
+            scoreToEffectObjectMap.TryAdd(1, gameTheme.Clear1);
+            scoreToEffectObjectMap.TryAdd(2, gameTheme.Clear2);
+            scoreToEffectObjectMap.TryAdd(3, gameTheme.Clear3);
+            scoreToEffectObjectMap.TryAdd(4, gameTheme.Clear4OrMore);
+            scoreToEffectObjectMap.TryAdd(default, gameTheme.Clear4OrMore);
+
+            this.blocksPool = blocksPool;
+            this.visualsPool = visualsPool;
 
             var areaWidth = gameAreaObject.GetComponent<SpriteRenderer>().bounds.size.x;
             var areaHeight = gameAreaObject.GetComponent<SpriteRenderer>().bounds.size.y;
@@ -65,9 +81,10 @@ namespace ArtTest.Game
             isInitialized = true;
         }
 
-        public void TryClearLines()
+        public async void TryClearLines()
         {
             int linesCleared = 0;
+            List<Tuple<bool, Vector3>> effectPositions = new();
 
             // Check rows
             for (int y = 0; y < gridHeight; y++)
@@ -89,6 +106,9 @@ namespace ArtTest.Game
                     {
                         cellsToClear.Add(gridCells[x, y]);
                     }
+
+                    var effectPos = gridCells[gridWidth / 2, y].transform.position;
+                    effectPositions.Add(new Tuple<bool, Vector3>(true, effectPos));
                 }
             }
 
@@ -112,98 +132,133 @@ namespace ArtTest.Game
                     {
                         cellsToClear.Add(gridCells[x, y]);
                     }
+
+                    var effectPos = gridCells[x, gridHeight / 2].transform.position;
+                    effectPositions.Add(new Tuple<bool, Vector3>(false, effectPos));
                 }
             }
 
-            // Destroy blocks in the cells to clear
+            // Spawn line clear effects
+            foreach (var effect in effectPositions)
+            {
+                if (scoreToEffectObjectMap.TryGetValue(linesCleared, out GameObject effectPrefab))
+                {
+                    if (effectPrefab != null)
+                    {
+                        var effectInstance = Instantiate(effectPrefab, effect.Item2 + new Vector3(0, 0, -5), Quaternion.identity);
+                        effectInstance.transform.localEulerAngles += new Vector3(0, 180, 0);
+                        if (effect.Item1)
+                        {
+                            effectInstance.transform.localEulerAngles += new Vector3(0, 0, 90);
+                        }
+                        Destroy(effectInstance, 1.5f); // Destroy after 1 second
+                    }
+                }
+            }
+
+            if (effectPositions.Count > 0)
+            {
+                await UniTask.Delay(1500); // Wait for effects to play
+            }
+
+            // Release blocks in the cells to clear
             var cellsToClearCopy = new List<Cell>(cellsToClear);
             foreach (Cell cell in cellsToClearCopy)
             {
-                var blockParent = cell.OccupyingBlock.transform.parent;
+                var block = cell.OccupyingBlock.transform.parent.GetComponent<Block>();
                 switch (linesCleared)
                 {
                     case 0:
                         break;
+
                     case 1:
+                        blocksToCheck.Add(block);
+
                         LeanTween.color(cell.OccupyingBlock, Color.black, 0.5f);
                         LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.3f).setEaseInBack().setOnComplete(() =>
                         {
-                            Destroy(cell.OccupyingBlock);
+                            block.CellVisuals.Remove(cell.OccupyingBlock);
+                            visualsPool.Release(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
-
-                            if (blockParent.childCount == 0)
-                            {
-                                Destroy(blockParent.gameObject);
-                            }
                         });
                         break;
+
                     case 2:
+                        blocksToCheck.Add(block);
+
                         LeanTween.color(cell.OccupyingBlock, Color.white, 0.5f);
-                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.4f).setEaseInBack().setOnComplete(() =>
+                        LeanTween.rotateZ(cell.OccupyingBlock, 720f, 0.6f).setEaseOutBack().setOnComplete(() =>
                         {
-                            Destroy(cell.OccupyingBlock);
-                            cell.OccupyingBlock = null;
-                            cellsToClear.Remove(cell);
+                            LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.4f).setEaseInBack().setOnComplete(() =>
+                            {
+                                block.CellVisuals.Remove(cell.OccupyingBlock);
+                                visualsPool.Release(cell.OccupyingBlock);
+                                cell.OccupyingBlock = null;
+                                cellsToClear.Remove(cell);
+                            });
                         });
-
-                        if (blockParent.childCount == 0)
-                        {
-                            Destroy(blockParent.gameObject);
-                        }
                         break;
+
                     case 3:
-                        LeanTween.color(cell.OccupyingBlock, Color.cyan, 0.5f);
-                        LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.5f).setEaseInBack().setOnComplete(() =>
-                        {
-                            Destroy(cell.OccupyingBlock);
-                            cell.OccupyingBlock = null;
-                            cellsToClear.Remove(cell);
-                        });
+                        blocksToCheck.Add(block);
 
-                        if (blockParent.childCount == 0)
+                        LeanTween.color(cell.OccupyingBlock, Color.cyan, 0.5f);
+                        LeanTween.rotateY(cell.OccupyingBlock, 180f, 0.6f).setEaseOutBack().setOnComplete(() =>
                         {
-                            Destroy(blockParent.gameObject);
-                        }
+                            LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.6f).setEaseInBack().setOnComplete(() =>
+                            {
+                                block.CellVisuals.Remove(cell.OccupyingBlock);
+                                visualsPool.Release(cell.OccupyingBlock);
+                                cell.OccupyingBlock = null;
+                                cellsToClear.Remove(cell);
+                            });
+                        });
+                        
                         break;
+
                     case 4:
+                        blocksToCheck.Add(block);
+
                         LeanTween.color(cell.OccupyingBlock, Color.yellow, 0.5f);
                         LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 0.8f).setEaseInBack().setOnComplete(() =>
                         {
-                            Destroy(cell.OccupyingBlock);
+                            block.CellVisuals.Remove(cell.OccupyingBlock);
+                            visualsPool.Release(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
                         });
-
-                        if (blockParent.childCount == 0)
-                        {
-                            Destroy(blockParent.gameObject);
-                        }
                         break;
+
                     default:
+                        blocksToCheck.Add(block);
+
                         LeanTween.color(cell.OccupyingBlock, Color.red, 0.5f);
                         LeanTween.scale(cell.OccupyingBlock, Vector3.zero, 1f).setEaseInBack().setOnComplete(() =>
                         {
-                            Destroy(cell.OccupyingBlock);
+                            block.CellVisuals.Remove(cell.OccupyingBlock);
+                            visualsPool.Release(cell.OccupyingBlock);
                             cell.OccupyingBlock = null;
                             cellsToClear.Remove(cell);
                         });
-
-                        if (blockParent.childCount == 0)
-                        {
-                            Destroy(blockParent.gameObject);
-                        }
                         break;
                 }
             }
 
+            foreach(Block block in blocksToCheck)
+            {
+                block.TryRelease(ref blocksPool);
+            }
+            blocksToCheck.Clear();
+
             CallEventWhenLinesFinishClearing(linesCleared);
         }
 
-        public async void CallEventWhenLinesFinishClearing(int linesCleared)
+        private async void CallEventWhenLinesFinishClearing(int linesCleared)
         {
             await UniTask.WaitUntil(() => cellsToClear.Count == 0);
 
+            cellsToClear.Clear();
             OnLinesCleared?.Invoke(linesCleared);
             OnLinesCheckFinished?.Invoke();
         }

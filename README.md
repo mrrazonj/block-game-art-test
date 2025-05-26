@@ -4,8 +4,8 @@
 ### Scriptable Objects
 For reskinning / theming purposes: graphic assets, sounds, and block shapes can be modified via Scriptable Objects without touching and script/scene.
 <ol>
-    <li>Game Settings (Assets/_BlockGame/Data/GameSettings/) - Developers can set size of play grid area (WIP), score per line cleared at one instance, and remove/add block shapes here</li>
-    <li>Game Theme (Assets/_BlockGame/Data/GameTheme/) - Developers can set the sprite and audio clip asset here for gameplay objects</li>
+    <li>Game Settings (Assets/_BlockGame/Data/GameSettings/) - Developers can set score per line cleared at one instance, and remove/add block shapes here</li>
+    <li>Game Theme (Assets/_BlockGame/Data/GameTheme/) - Developers can set the sprite visuals, particle systems, and audio clip asset here for gameplay objects</li>
     <li>Block Data/Shapes (Assets/_BlockGame/Data/BlockShapes/) - Developers can create their own custom block shapes here and their associated color</li>
 </ol>
 
@@ -14,8 +14,8 @@ Since the gameplay is made via 2D gameobjects, for proper scaling sprite replace
 <ol>
     <li>Gameplay/Grid Panel - 940px x 940px</li>
     <li>Grid Cell - 100px x 100px</li>
-    <li>Background Image - 1080px x 1920px (WIP)</li>
     <li>Block Cell - 100px x 100px (For proper coloring, sprite must be grayscaled)</li>
+    <li>Line clear effects (Must cover whole column/row of panel when placed at center)
 </ol>
 
 
@@ -54,11 +54,16 @@ Since the gameplay is made via 2D gameobjects, for proper scaling sprite replace
 ## Tools and Assets Used
 <ol>
     <li>Unity 6 - 6000.0.23f1</li>
+    <li>VS 2022 w/ Github Copilot - For scripting, and AI-powered context-aware code auto-completion for efficiency.</li>
+    <li>Photoshop 2025 - For creation/modification of default gameplay assets (blocks, panels, etc)</li>
     <li>Leantween - For animation</li>
     <li>TextMeshPro - For text assets</li>
     <li>Newtonsoft Json - For data serialization</li>
     <li>2D Casual UI - For basic UI assets</li>
+    <li>Stylized Rainbow Trails - For line clear particles</li>
+    <li>UniTask - For async operation helpers</li>
 </ol>
 
 ## Samples / Preview
 APK link: https://drive.google.com/file/d/1fQJZB7ZZxT_hfvvPt6zL5GKcB73EUVmM/view?usp=drive_link
+Preview Video: https://drive.google.com/file/d/1KPHvKWgzktcP0DlmRDqovu4YLV6UkD7h/view?usp=sharing
